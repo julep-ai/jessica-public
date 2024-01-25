@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --text-primary: 255, 255, 255;
+    --bg-primary: 243, 244, 246;
+    --bg-secondary: 36, 36, 36;
+    --bg-tertiary: 19, 19, 19;
+  }
+
+  .dark {
+    --text-primary: 255, 255, 255;
+    --bg-primary: 243, 244, 246;
+    --bg-secondary: 36, 36, 36;
+    --bg-tertiary: 19, 19, 19;
+  }
+}
+
+body {
+    font-family: 'Bricolage Grotesque', sans-serif;
+}
