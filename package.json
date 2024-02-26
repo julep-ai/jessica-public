@@ -12,7 +12,7 @@
   "dependencies": {
     "@fontsource/nanum-myeongjo": "^5.0.16",
     "@headlessui/react": "^1.7.13",
-    "@sentry/nextjs": "^7.84.0",
+    "@julep/sdk": "^0.2.1",
     "@types/node": "18.15.10",
     "@types/react": "18.0.30",
     "@types/react-dom": "18.0.11",
