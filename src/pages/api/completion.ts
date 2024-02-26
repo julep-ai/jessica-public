@@ -4,14 +4,14 @@ import { OpenAIRequest } from "@/utils/OpenAI";
 // @ts-ignore
 import * as julep from "@julep/sdk";
 
-const apiKey =
-  process.env.API_KEY ||
-  "";
+const apiKey = process.env.API_KEY || "";
 
 const client = new julep.JulepApiClient({ apiKey });
 
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<any>
+) {
   const {
     session_id,
     max_tokens,
@@ -31,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     topP: top_p || defaultConfig.top_p,
     frequencyPenalty: frequency_penalty || defaultConfig.frequency_penalty,
     presencePenalty: presence_penalty || defaultConfig.presence_penalty,
+    stream: false,
   };
 
   try {
@@ -42,7 +43,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       ...config,
       messages: messages,
     });
-    console.log(createChatResponse);
     res.status(200).json(createChatResponse); // Use the res parameter to send a response
   } catch (e: any) {
     console.error(e); // Log the error for debugging

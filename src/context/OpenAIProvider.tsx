@@ -106,9 +106,9 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
   );
   const [config, setConfig] = React.useState<OpenAIConfig>(defaultConfig);
   const [messages, setMessages] = React.useState<OpenAIChatMessage[]>([]);
-  const [userId, setUserId] = React.useState<string | undefined>(undefined);
-  const [agentId, setAgentId] = React.useState<string | undefined>(undefined);
-  const [sessionId, setSessionId] = React.useState<string | undefined>(
+  const [userId_, setUserId] = React.useState<string | undefined>(undefined);
+  const [agentId_, setAgentId] = React.useState<string | undefined>(undefined);
+  const [sessionId_, setSessionId] = React.useState<string | undefined>(
     undefined
   );
   const initialized = React.useRef(false);
@@ -125,7 +125,6 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
     const userId = secureLocalStorage.getItem("user-id") as string;
     const agentId = process.env.NEXT_PUBLIC_AGENT_ID as string;
     const sessionId = secureLocalStorage.getItem("session-id") as string;
-    console.log({ userId, agentId, sessionId });
 
     if (agentId) {
       setAgentId(agentId);
@@ -133,7 +132,6 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
     if (userId) {
       setUserId(userId);
     } else {
-      // Fetch function for creating a new user
       fetch("/api/createUser", {
         method: "POST",
       })
@@ -141,23 +139,24 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
         .then((data) => {
           setUserId(data.id);
           secureLocalStorage.setItem("user-id", data.id);
+          return data.id;
+        })
+        .then((id) => {
+          if (sessionId) {
+            return setSessionId(sessionId);
+          }
+          fetch("/api/createSession", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ agentId, userId: id }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              setSessionId(data.id);
+              secureLocalStorage.setItem("session-id", data.id);
+            });
         })
         .catch((err) => console.error(err));
-    }
-
-    if (sessionId) {
-      return setSessionId(sessionId);
-    } else {
-      fetch("/api/createSession", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId, userId }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          setSessionId(data.id);
-          secureLocalStorage.setItem("session-id", data.id);
-        });
     }
   }, []);
 
@@ -320,7 +319,6 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
     async (messages_: OpenAIChatMessage[] = []) => {
       if (loading) return;
       setLoading(true);
-
       messages_ = messages_.length ? messages_ : messages;
 
       const contentEmpty = messages_.some(
@@ -348,7 +346,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
           },
           body: JSON.stringify({
             ...config,
-            session_id: sessionId,
+            session_id: sessionId_,
             messages,
           }),
         });
@@ -365,9 +363,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
 
         const data = await response.json();
 
-        // console.log({ data });
-
-        const message = data.choices[0].message;
+        const message = data.response[0][0];
 
         const newMessage = {
           ...message,
@@ -386,7 +382,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
 
       setLoading(false);
     },
-    [config, messages, systemMessage, loading, token]
+    [config, messages, systemMessage, loading, token, sessionId_]
   );
 
   const addMessage = useCallback(
