@@ -4,7 +4,6 @@ import { defaultConfig, getOpenAICompletion } from "@/utils/OpenAI";
 import * as julep from "@julep/sdk";
 
 const apiKey = process.env.API_KEY || "";
-
 const client = new julep.JulepApiClient({ apiKey });
 
 export default async function handler(req: Request, res: NextApiResponse<any>) {

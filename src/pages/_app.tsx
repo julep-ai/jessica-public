@@ -3,8 +3,12 @@ import OpenAIProvider from "@/context/OpenAIProvider";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { Analytics } from "@vercel/analytics/react";
+import { getHistory } from "@/utils/History";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
   if (typeof window !== "undefined") {
     const isDarkSet = localStorage.theme === "dark";
     const isThemeStored = "theme" in localStorage;
@@ -18,6 +22,13 @@ export default function App({ Component, pageProps }: AppProps) {
       document.documentElement.classList.remove("dark");
     }
   }
+  useEffect(() => {
+    const history = getHistory();
+    if (history && Object.keys(history).length > 0) {
+      const firstId = Object.keys(history)[0];
+      router.push(`/chat/${firstId}`);
+    }
+  }, []);
 
   return (
     <>

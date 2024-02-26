@@ -1,4 +1,14 @@
 import React, { PropsWithChildren } from "react";
+import {
+  clearHistory,
+  Conversation,
+  getHistory,
+  storeConversation,
+  History,
+  deleteConversationFromHistory,
+  updateConversation,
+} from "@/utils/History";
+
 
 const PlaygroundContext = React.createContext<{
   showConversations: boolean;
@@ -12,7 +22,14 @@ const PlaygroundContext = React.createContext<{
 
 export default function PlaygroundProvider(props: PropsWithChildren) {
   const [showConversations, setShowConversations] = React.useState(false);
+  const [userId_, setUserId] = React.useState<string | undefined>(undefined);
+  const [agentId_, setAgentId] = React.useState<string | undefined>(undefined);
+  const [sessionId_, setSessionId] = React.useState<string | undefined>(
+    undefined
+  );
 
+  const history = getHistory();
+  console.log(history)
   const toggleShowConversations = () => {
     setShowConversations(!showConversations);
   };

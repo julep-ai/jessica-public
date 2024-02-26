@@ -111,6 +111,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
   const [sessionId_, setSessionId] = React.useState<string | undefined>(
     undefined
   );
+
   const initialized = React.useRef(false);
 
   // Load conversation from local storage
@@ -129,36 +130,53 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
     if (agentId) {
       setAgentId(agentId);
     }
+
     if (userId) {
-      setUserId(userId);
+      handleExistingUser(userId);
+      if (sessionId) {
+        handleExistingSession(sessionId);
+      } else {
+        handleNewSession(agentId, userId);
+      }
     } else {
-      fetch("/api/createUser", {
-        method: "POST",
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          setUserId(data.id);
-          secureLocalStorage.setItem("user-id", data.id);
-          return data.id;
-        })
-        .then((id) => {
-          if (sessionId) {
-            return setSessionId(sessionId);
-          }
-          fetch("/api/createSession", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ agentId, userId: id }),
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              setSessionId(data.id);
-              secureLocalStorage.setItem("session-id", data.id);
-            });
-        })
-        .catch((err) => console.error(err));
-    }
+      handleNewUser(agentId);
+    }  
   }, []);
+
+  const handleExistingUser = (userId: string) => {
+    setUserId(userId);
+  };
+
+  const handleNewUser = (agentId: string) => {
+    fetch("/api/createUser", {
+      method: "POST",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setUserId(data.id);
+        secureLocalStorage.setItem("user-id", data.id);
+        handleNewSession(agentId, data.id);
+      })
+      .catch((err) => console.error(err));
+  };
+
+  const handleExistingSession = (sessionId: string) => {
+    setSessionId(sessionId);
+  };
+
+  const handleNewSession = (agentId: string, userId: string) => {
+    fetch("/api/createSession", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ agentId, userId }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setSessionId(data.id);
+        secureLocalStorage.setItem("session-id", data.id);
+      });
+  };
+
 
   const updateSystemMessage = (content: string) => {
     setSystemMessage({
@@ -315,8 +333,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
     updateConversation(id, { name });
   };
 
-  const submit = useCallback(
-    async (messages_: OpenAIChatMessage[] = []) => {
+  const submit = async (messages_: OpenAIChatMessage[] = []) => {  
       if (loading) return;
       setLoading(true);
       messages_ = messages_.length ? messages_ : messages;
@@ -377,13 +394,12 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
         });
       } catch (error: any) {
         setLoading(false);
+        console.error(error)
         throw new Error(error.message);
       }
 
       setLoading(false);
-    },
-    [config, messages, systemMessage, loading, token, sessionId_]
-  );
+    }
 
   const addMessage = useCallback(
     (

@@ -84,7 +84,7 @@ export default function ChatInput({}: Props) {
           </a>{" "}
           kitchen, using the secret ingredient :{" "}
           <a
-            href="https://www.julep.ai/samantha-1"
+            href="https://www.julep.ai/samantha"
             target="_blank"
             className="underline"
           >
