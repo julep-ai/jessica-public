@@ -22,7 +22,6 @@ import React, { PropsWithChildren, useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthProvider";
 import { JessicaPrompt } from "@/context/prompts";
-import { createUser } from "@/actions/julep";
 
 export const runtime = "nodejs";
 
@@ -349,6 +348,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
           },
           body: JSON.stringify({
             ...config,
+            session_id: sessionId,
             messages,
           }),
         });
