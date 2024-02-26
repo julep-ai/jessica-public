@@ -3,13 +3,12 @@ import React from "react";
 import Dropdown from "../input/Dropdown";
 import Slider from "../input/Slider";
 import { OpenAIChatModels, OpenAIConfig } from "@/utils/OpenAI";
-import useModels from "../hooks/useModels";
 
 type Props = {};
 
 export default function ConfigSidebar({}: Props) {
   const { config, updateConfig } = useOpenAI();
-  const { models, loadingModels } = useModels();
+  //   const { models, loadingModels } = useModels();
 
   const handleUpdateConfig = <K extends keyof OpenAIConfig>(
     id: K,
@@ -22,7 +21,7 @@ export default function ConfigSidebar({}: Props) {
 
   return (
     <div className="hidden min-w-[240px] flex-col items-stretch gap-y-4 p-4 md:flex">
-      <Dropdown
+      {/* <Dropdown
         label="Model"
         options={
           loadingModels
@@ -31,7 +30,7 @@ export default function ConfigSidebar({}: Props) {
         }
         value={config.model}
         onSelect={(option) => handleUpdateConfig("model", option)}
-      />
+      /> */}
       <Slider
         label="temperature"
         range={[0, 1]}
@@ -138,7 +137,7 @@ export default function ConfigSidebar({}: Props) {
               e.target.value === "" ? [] : e.target.value.split(",")
             )
           }
-          className="mt-1 text-md rounded border-gray-300 border px-1 text-right text-gray-700 focus:outline focus:outline-blue-500"
+          className="text-md mt-1 rounded border border-gray-300 px-1 text-right text-gray-700 focus:outline focus:outline-blue-500"
         />
       </div>
     </div>
