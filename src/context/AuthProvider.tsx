@@ -1,10 +1,8 @@
 import React, { PropsWithChildren } from "react";
 import secureLocalStorage from "react-secure-storage";
 
-
-
 const defaultContext = {
-  token: ""
+token: ""
 };
 
 const AuthContext = React.createContext<{

@@ -1,9 +1,7 @@
+'use server'
 import { OpenAIChatMessage, OpenAIConfig } from "./OpenAI.types";
-import {
-  createParser,
-  ParsedEvent,
-  ReconnectInterval,
-} from "eventsource-parser";
+// @ts-ignore
+// import { JulepApiClient } from "@julep/sdk";
 
 export const defaultConfig = {
   model: "julep-ai/samantha-1-turbo",
@@ -46,22 +44,27 @@ interface Choice {
   finish_reason: string;
 }
 
-const token = process.env.API_KEY || "";
+const token =
+  process.env.API_KEY ||
+  "";
+
+
+
 
 export const getOpenAICompletion = async (
   payload: OpenAIRequest
 ): Promise<Response> => {
-  const response = await fetch(
-    "https://api-alpha.julep.ai/v1/chat/completions",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: JSON.stringify(payload),
-    }
-  );
+    const response = await fetch(
+      "https://api-alpha.julep.ai/v1/chat/completions",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
 
   // Check for errors
   if (!response.ok) {
