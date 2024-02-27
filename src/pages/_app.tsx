@@ -5,9 +5,10 @@ import type { AppProps } from "next/app";
 import { Analytics } from "@vercel/analytics/react";
 import { getHistory } from "@/utils/History";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function App({ Component, pageProps }: AppProps) {
+  const [providerReady, setProviderReady] = useState(false);
   const router = useRouter();
   if (typeof window !== "undefined") {
     const isDarkSet = localStorage.theme === "dark";
@@ -28,12 +29,12 @@ export default function App({ Component, pageProps }: AppProps) {
       const firstId = Object.keys(history)[0];
       router.push(`/chat/${firstId}`);
     }
-  }, []);
+  }, [providerReady]);
 
   return (
     <>
       <AuthProvider>
-        <OpenAIProvider>
+        <OpenAIProvider onReady={() => setProviderReady(true)}>
           <Component {...pageProps} />
         </OpenAIProvider>
       </AuthProvider>

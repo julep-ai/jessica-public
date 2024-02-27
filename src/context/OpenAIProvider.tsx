@@ -18,7 +18,7 @@ import {
   OpenAIChatModels,
   JulepAIChatMessageRole,
 } from "@/utils/OpenAI";
-import React, { PropsWithChildren, useCallback, useEffect } from "react";
+import React, { PropsWithChildren, ReactNode, useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthProvider";
 import { JessicaPrompt } from "@/context/prompts";
@@ -31,6 +31,12 @@ type UserName = {
   id: string;
   name: string;
 };
+
+interface OpenAIProviderProps {
+  children?: ReactNode;
+  onReady: () => void;
+}
+
 
 const defaultContext = {
   systemMessage: {
@@ -89,7 +95,7 @@ const OpenAIContext = React.createContext<{
   error: string;
 }>(defaultContext);
 
-export default function OpenAIProvider({ children }: PropsWithChildren) {
+export default function OpenAIProvider({ children, onReady }: OpenAIProviderProps) {
   const { token } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
@@ -145,6 +151,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
 
   const handleExistingUser = (userId: string) => {
     setUserId(userId);
+  onReady();
   };
 
   const handleNewUser = (agentId: string) => {
