@@ -18,7 +18,12 @@ import {
   OpenAIChatModels,
   JulepAIChatMessageRole,
 } from "@/utils/OpenAI";
-import React, { PropsWithChildren, ReactNode, useCallback, useEffect } from "react";
+import React, {
+  PropsWithChildren,
+  ReactNode,
+  useCallback,
+  useEffect,
+} from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthProvider";
 import { JessicaPrompt } from "@/context/prompts";
@@ -36,7 +41,6 @@ interface OpenAIProviderProps {
   children?: ReactNode;
   onReady: () => void;
 }
-
 
 const defaultContext = {
   systemMessage: {
@@ -95,7 +99,10 @@ const OpenAIContext = React.createContext<{
   error: string;
 }>(defaultContext);
 
-export default function OpenAIProvider({ children, onReady }: OpenAIProviderProps) {
+export default function OpenAIProvider({
+  children,
+  onReady,
+}: OpenAIProviderProps) {
   const { token } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
@@ -129,6 +136,8 @@ export default function OpenAIProvider({ children, onReady }: OpenAIProviderProp
     if (initialized.current) return;
     initialized.current = true;
 
+    setLoading(true);
+
     const userId = secureLocalStorage.getItem("user-id") as string;
     const agentId = process.env.NEXT_PUBLIC_AGENT_ID as string;
     const sessionId = secureLocalStorage.getItem("session-id") as string;
@@ -141,21 +150,26 @@ export default function OpenAIProvider({ children, onReady }: OpenAIProviderProp
       handleExistingUser(userId);
       if (sessionId) {
         handleExistingSession(sessionId);
+        setLoading(false);
       } else {
-        handleNewSession(agentId, userId);
+        handleNewSession(agentId, userId).then(() => {
+          setLoading(false);
+        });
       }
     } else {
-      handleNewUser(agentId);
-    }  
+      handleNewUser(agentId).then(() => {
+        setLoading(false);
+      });
+    }
   }, []);
 
   const handleExistingUser = (userId: string) => {
     setUserId(userId);
-  onReady();
+    onReady();
   };
 
   const handleNewUser = (agentId: string) => {
-    fetch("/api/createUser", {
+    return fetch("/api/createUser", {
       method: "POST",
     })
       .then((res) => res.json())
@@ -172,7 +186,7 @@ export default function OpenAIProvider({ children, onReady }: OpenAIProviderProp
   };
 
   const handleNewSession = (agentId: string, userId: string) => {
-    fetch("/api/createSession", {
+    return fetch("/api/createSession", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ agentId, userId }),
@@ -183,7 +197,6 @@ export default function OpenAIProvider({ children, onReady }: OpenAIProviderProp
         secureLocalStorage.setItem("session-id", data.id);
       });
   };
-
 
   const updateSystemMessage = (content: string) => {
     setSystemMessage({
@@ -340,73 +353,73 @@ export default function OpenAIProvider({ children, onReady }: OpenAIProviderProp
     updateConversation(id, { name });
   };
 
-  const submit = async (messages_: OpenAIChatMessage[] = []) => {  
-      if (loading) return;
-      setLoading(true);
-      messages_ = messages_.length ? messages_ : messages;
+  const submit = async (messages_: OpenAIChatMessage[] = []) => {
+    if (loading) return;
+    setLoading(true);
+    messages_ = messages_.length ? messages_ : messages;
 
-      const contentEmpty = messages_.some(
-        (message) => message.content.trim() === ""
+    const contentEmpty = messages_.some(
+      (message) => message.content.trim() === ""
+    );
+
+    if (contentEmpty) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const messages = [systemMessage, ...messages_].map(
+        ({ role, content, name }) => ({
+          role,
+          content,
+          name,
+        })
       );
 
-      if (contentEmpty) {
-        setLoading(false);
-        return;
-      }
+      const response = await fetch("/api/completion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...config,
+          session_id: sessionId_,
+          messages,
+        }),
+      });
 
-      try {
-        const messages = [systemMessage, ...messages_].map(
-          ({ role, content, name }) => ({
-            role,
-            content,
-            name,
-          })
+      if (!response.ok) {
+        // Get the error message from the response body
+        const error = await response.json();
+
+        throw new Error(
+          error?.message ||
+            "Failed to fetch response, check your API key and try again."
         );
-
-        const response = await fetch("/api/completion", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...config,
-            session_id: sessionId_,
-            messages,
-          }),
-        });
-
-        if (!response.ok) {
-          // Get the error message from the response body
-          const error = await response.json();
-
-          throw new Error(
-            error?.message ||
-              "Failed to fetch response, check your API key and try again."
-          );
-        }
-
-        const data = await response.json();
-
-        const message = data.response[0][0];
-
-        const newMessage = {
-          ...message,
-          id: uuid(),
-          name: "Jessica",
-        } as OpenAIChatMessage;
-
-        setMessages((prev) => {
-          message.id = uuid();
-          return [...prev, newMessage];
-        });
-      } catch (error: any) {
-        setLoading(false);
-        console.error(error)
-        throw new Error(error.message);
       }
 
+      const data = await response.json();
+
+      const message = data.response[0][0];
+
+      const newMessage = {
+        ...message,
+        id: uuid(),
+        name: "Jessica",
+      } as OpenAIChatMessage;
+
+      setMessages((prev) => {
+        message.id = uuid();
+        return [...prev, newMessage];
+      });
+    } catch (error: any) {
       setLoading(false);
+      console.error(error);
+      throw new Error(error.message);
     }
+
+    setLoading(false);
+  };
 
   const addMessage = useCallback(
     (

@@ -63,10 +63,12 @@ export default function ChatInput({}: Props) {
             value={input}
             rows={1}
             autoFocus={true}
+            disabled={loading}
           />
           <button
             type="submit"
             className="rounded p-4 text-primary hover:bg-primary/50"
+            disabled={loading}
           >
             {loading ? (
               <div className="mx-auto h-5 w-5 animate-spin rounded-full border-b-2 border-white" />
@@ -76,8 +78,7 @@ export default function ChatInput({}: Props) {
           </button>
         </div>
 
-
-        <div className="text-[#8D8D8D] text-xs lg:text-sm text-center">
+        <div className="text-center text-xs text-[#8D8D8D] lg:text-sm">
           Cooked up in{" "}
           <a href="https://www.julep.ai/" target="_blank" className="underline">
             Julep AI's
