@@ -1,9 +1,17 @@
 ## Running Locally
+
+First create a `.env` file at the root of the project with the containing
+
+```env
+NEXT_PUBLIC_AGENT_ID=<AGENT_ID>
+API_KEY=<API_KEY>
+```
+
 To run this project locally, you will need to have [Node.js](https://nodejs.org/en/) installed. Once you have Node.js installed, you can clone this repository and run the following commands:
 
 ```bash
-yarn install
-yarn dev
+pmpn install
+pmpn dev
 ```
 
 This will start a local server on port 3000. You can then navigate to `localhost:3000` to view the project!
