@@ -2,11 +2,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { defaultConfig, getOpenAICompletion } from "@/utils/OpenAI";
 import { OpenAIRequest } from "@/utils/OpenAI";
 // @ts-ignore
-import * as julep from "@julep/sdk";
+import { Client } from "@julep/sdk";
 
 const apiKey = process.env.API_KEY || "";
+const baseUrl = process.env.BASE_URL || "";
 
-const client = new julep.JulepApiClient({ apiKey });
+const client = new Client({ apiKey, baseUrl });
 
 export default async function handler(
   req: NextApiRequest,
@@ -35,11 +36,7 @@ export default async function handler(
   };
 
   try {
-    const createChatResponse = await client.chat(session_id, {
-      accept: "application/json",
-      responseFormat: {
-        type: julep.JulepApi.ChatSettingsResponseFormatType.Text,
-      },
+    const createChatResponse = await client.sessions.chat(session_id, {
       ...config,
       messages: messages,
     });

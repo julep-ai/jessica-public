@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { defaultConfig, getOpenAICompletion } from "@/utils/OpenAI";
 // @ts-ignore
-import * as julep from "@julep/sdk";
+import { Client } from "@julep/sdk";
 
 const apiKey = process.env.API_KEY || "";
+const baseUrl = process.env.BASE_URL || "";
 
-const client = new julep.JulepApiClient({ apiKey });
+const client = new Client({ apiKey, baseUrl });
 
 export default async function handler(
   req: NextApiRequest,
@@ -13,7 +14,7 @@ export default async function handler(
 ) {
   const { agentId, userId } = req.body;
   try {
-    const createSessionResponse = await client.createSession({
+    const createSessionResponse = await client.sessions.create({
       agentId,
       userId,
     }); // Renamed variable to avoid shadowing
